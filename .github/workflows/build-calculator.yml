@@ -33,7 +33,7 @@ jobs:
         ./calculator
         
     - name: Upload Native Binary
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: calculator-native-linux
         path: calculator
