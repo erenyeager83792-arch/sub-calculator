@@ -1,0 +1,86 @@
+name: Build and Test SUB Calculator
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-native:
+    runs-on: ubuntu-latest
+    name: Compile SUB Calculator to Native Binary
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Download SUB Native Compiler
+      run: |
+        # Download the latest native compiler from sub-lang releases
+        curl -L -o subc-native https://github.com/subhobhai943/sub-lang/releases/download/v1.0.6/subc-native-linux
+        chmod +x subc-native
+        
+    - name: Compile Calculator to Native Binary
+      run: |
+        # Compile the calculator program to native binary
+        ./subc-native calculator.sb calculator
+        
+    - name: Test Native Binary
+      run: |
+        # Run the compiled calculator
+        echo "Running native calculator binary:"
+        ./calculator
+        
+    - name: Upload Native Binary
+      uses: actions/upload-artifact@v3
+      with:
+        name: calculator-native-linux
+        path: calculator
+        
+  build-transpiled:
+    runs-on: ubuntu-latest
+    name: Transpile SUB Calculator to Multiple Languages
+    strategy:
+      matrix:
+        target: [python, javascript, rust, cpp]
+        include:
+          - target: python
+            ext: py
+            run_cmd: python3 output.py
+          - target: javascript
+            ext: js
+            run_cmd: node output.js
+          - target: rust
+            ext: rs
+            run_cmd: rustc output.rs && ./output
+          - target: cpp
+            ext: cpp
+            run_cmd: g++ output.cpp && ./a.out
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Download SUB Transpiler
+      run: |
+        # Download the latest transpiler from sub-lang releases
+        curl -L -o sublang https://github.com/subhobhai943/sub-lang/releases/download/v1.0.6/sublang-linux
+        chmod +x sublang
+        
+    - name: Transpile Calculator to ${{ matrix.target }}
+      run: |
+        # Transpile the calculator program
+        ./sublang calculator.sb ${{ matrix.target }}
+        
+    - name: Test Transpiled Code
+      run: |
+        # Run the transpiled code
+        echo "Running ${{ matrix.target }} version:"
+        ${{ matrix.run_cmd }}
+        
+    - name: Upload Transpiled Code
+      uses: actions/upload-artifact@v3
+      with:
+        name: calculator-${{ matrix.target }}
+        path: output.${{ matrix.ext }}
