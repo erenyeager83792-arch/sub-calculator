@@ -1,0 +1,45 @@
+# Calculator Program in SUB Language
+# This program demonstrates basic arithmetic operations
+
+#function add(a, b)
+    #return a + b
+#end
+
+#function subtract(a, b)
+    #return a - b
+#end
+
+#function multiply(a, b)
+    #return a * b
+#end
+
+#function divide(a, b)
+    #if b == 0
+        #return 0
+    #else
+        #return a / b
+    #end
+#end
+
+#function calculator_demo()
+    #var x = 15
+    #var y = 3
+    
+    #print("=== SUB Calculator Demo ===")
+    #print("")
+    #print("Numbers: x = " + x + ", y = " + y)
+    #print("")
+    #print("Addition: " + x + " + " + y + " = " + add(x, y))
+    #print("Subtraction: " + x + " - " + y + " = " + subtract(x, y))
+    #print("Multiplication: " + x + " * " + y + " = " + multiply(x, y))
+    #print("Division: " + x + " / " + y + " = " + divide(x, y))
+    #print("")
+    #print("Testing division by zero: 10 / 0 = " + divide(10, 0))
+    #print("")
+    #print("===========================")
+#end
+
+#call calculator_demo()
+
+#var result = add(100, 50)
+#print("Bonus: 100 + 50 = " + result)
