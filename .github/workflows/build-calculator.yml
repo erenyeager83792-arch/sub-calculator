@@ -18,7 +18,7 @@ jobs:
     - name: Download SUB Native Compiler
       run: |
         # Download the latest native compiler from sub-lang releases
-        curl -L -o subc-native https://github.com/subhobhai943/sub-lang/releases/download/v1.0.6/subc-native-linux
+        curl -L -o subc-native https://github.com/subhobhai943/sub-lang/releases/download/v1.0.7-alpha/subc-native-linux
         chmod +x subc-native
         
     - name: Compile Calculator to Native Binary
@@ -65,7 +65,7 @@ jobs:
     - name: Download SUB Transpiler
       run: |
         # Download the latest transpiler from sub-lang releases
-        curl -L -o sublang https://github.com/subhobhai943/sub-lang/releases/download/v1.0.6/sublang-linux
+        curl -L -o sublang https://github.com/subhobhai943/sub-lang/releases/download/v1.0.7-alpha/sublang-linux
         chmod +x sublang
         
     - name: Transpile Calculator to ${{ matrix.target }}
