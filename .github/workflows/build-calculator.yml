@@ -8,8 +8,26 @@ on:
 
 jobs:
   build-native:
-    runs-on: ubuntu-latest
-    name: Compile SUB Calculator to Native Binary
+    runs-on: ${{ matrix.os }}
+    name: Compile SUB Calculator to Native Binary (${{ matrix.platform }})
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            compiler_url: https://github.com/subhobhai943/sub-lang/releases/download/v1.0.7-alpha/subc-native-linux
+            compiler_name: subc-native
+            binary_name: calculator
+          - os: windows-latest
+            platform: windows
+            compiler_url: https://github.com/subhobhai943/sub-lang/releases/download/v1.0.7-alpha/subc-native-windows.exe
+            compiler_name: subc-native.exe
+            binary_name: calculator.exe
+          - os: macos-latest
+            platform: macos
+            compiler_url: https://github.com/subhobhai943/sub-lang/releases/download/v1.0.7-alpha/subc-native-macos
+            compiler_name: subc-native
+            binary_name: calculator
     
     steps:
     - name: Checkout repository
@@ -17,34 +35,50 @@ jobs:
     
     - name: Download SUB Native Compiler
       run: |
-        # Download the latest native compiler from sub-lang releases
-        curl -L -o subc-native https://github.com/subhobhai943/sub-lang/releases/download/v1.0.7-alpha/subc-native-linux
-        chmod +x subc-native
+        curl -L -o ${{ matrix.compiler_name }} ${{ matrix.compiler_url }}
+      shell: bash
+    
+    - name: Make compiler executable (Unix)
+      if: matrix.platform != 'windows'
+      run: chmod +x ${{ matrix.compiler_name }}
         
     - name: Compile Calculator to Native Binary
       run: |
-        # Compile the calculator program to native binary
-        ./subc-native calculator.sb calculator
+        ./${{ matrix.compiler_name }} calculator.sb calculator
+      shell: bash
         
     - name: Test Native Binary
       run: |
-        # Run the compiled calculator
-        echo "Running native calculator binary:"
-        ./calculator
+        echo "Running native calculator binary on ${{ matrix.platform }}:"
+        ./${{ matrix.binary_name }}
+      shell: bash
         
     - name: Upload Native Binary
       uses: actions/upload-artifact@v4
       with:
-        name: calculator-native-linux
-        path: calculator
+        name: calculator-native-${{ matrix.platform }}
+        path: ${{ matrix.binary_name }}
         
   build-transpiled:
-    runs-on: ubuntu-latest
-    name: Transpile SUB Calculator to Multiple Languages
+    runs-on: ${{ matrix.os }}
+    name: Transpile SUB Calculator (${{ matrix.target }} on ${{ matrix.platform }})
     strategy:
       matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
         target: [python, javascript, rust, cpp]
         include:
+          - os: ubuntu-latest
+            platform: linux
+            transpiler_url: https://github.com/subhobhai943/sub-lang/releases/download/v1.0.7-alpha/sublang-linux
+            transpiler_name: sublang
+          - os: windows-latest
+            platform: windows
+            transpiler_url: https://github.com/subhobhai943/sub-lang/releases/download/v1.0.7-alpha/sublang-windows.exe
+            transpiler_name: sublang.exe
+          - os: macos-latest
+            platform: macos
+            transpiler_url: https://github.com/subhobhai943/sub-lang/releases/download/v1.0.7-alpha/sublang-macos
+            transpiler_name: sublang
           - target: python
             ext: py
             run_cmd: python3 output.py
@@ -62,25 +96,48 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
     
+    - name: Setup Python
+      if: matrix.target == 'python'
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    
+    - name: Setup Node.js
+      if: matrix.target == 'javascript'
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Setup Rust
+      if: matrix.target == 'rust'
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+    
+    - name: Setup C++ (Windows)
+      if: matrix.target == 'cpp' && matrix.platform == 'windows'
+      uses: ilammy/msvc-dev-cmd@v1
+    
     - name: Download SUB Transpiler
       run: |
-        # Download the latest transpiler from sub-lang releases
-        curl -L -o sublang https://github.com/subhobhai943/sub-lang/releases/download/v1.0.7-alpha/sublang-linux
-        chmod +x sublang
+        curl -L -o ${{ matrix.transpiler_name }} ${{ matrix.transpiler_url }}
+      shell: bash
+    
+    - name: Make transpiler executable (Unix)
+      if: matrix.platform != 'windows'
+      run: chmod +x ${{ matrix.transpiler_name }}
         
     - name: Transpile Calculator to ${{ matrix.target }}
       run: |
-        # Transpile the calculator program
-        ./sublang calculator.sb ${{ matrix.target }}
+        ./${{ matrix.transpiler_name }} calculator.sb ${{ matrix.target }}
+      shell: bash
         
     - name: Test Transpiled Code
       run: |
-        # Run the transpiled code
-        echo "Running ${{ matrix.target }} version:"
+        echo "Running ${{ matrix.target }} version on ${{ matrix.platform }}:"
         ${{ matrix.run_cmd }}
+      shell: bash
         
     - name: Upload Transpiled Code
       uses: actions/upload-artifact@v4
       with:
-        name: calculator-${{ matrix.target }}
+        name: calculator-${{ matrix.target }}-${{ matrix.platform }}
         path: output.${{ matrix.ext }}
